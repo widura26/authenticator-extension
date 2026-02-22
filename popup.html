@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authenticator</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="header">
+        <h2>Authenticator</h2>
+        <button id="add-btn" class="icon-btn">+</button>
+    </div>
+
+    <div id="codes-list" class="codes-list">
+        <!-- Codes will be injected here by JS -->
+        <div class="empty-state">No accounts added yet.</div>
+    </div>
+
+    <div id="add-form" class="add-form hidden">
+        <h3>Add New Account</h3>
+        <button id="qr-btn" class="secondary" style="width: 100%; margin-bottom: 10px;">Upload QR Image</button>
+        <input type="file" id="qr-input" accept="image/*" style="display: none;">
+        <input type="text" id="issuer-input" placeholder="Account Name (e.g. Google)">
+        <div class="form-actions">
+            <button id="save-btn">Save</button>
+            <button id="cancel-btn" class="secondary">Cancel</button>
+        </div>
+    </div>
+    <script src="jsQR.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>

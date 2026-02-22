@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Simple 2FA Authenticator",
+  "version": "1.0",
+  "description": "A simple browser extension to generate 2FA codes.",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
