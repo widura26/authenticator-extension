@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
             item.innerHTML = `
                 <div>
                     <span class="account-name">${account.issuer}</span>
-                    <div class="code-display">${code}</div>
+                    <div class="code-display" id="code-display-${account.id}">${code}</div>
                 </div>
                 <div class="delete-btn" data-id="${account.id}">
                     <svg viewBox="0 0 24 24" width="18" height="18" style="pointer-events: none;">
@@ -189,6 +189,16 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', (e) => {
                 const id = parseInt(e.currentTarget.getAttribute('data-id'));
                 deleteAccount(id);
+            });
+        });
+      
+        document.querySelectorAll('.code-display').forEach(display => {
+            display.addEventListener('click', (e) => {
+                const code = e.currentTarget.innerText;
+                navigator.clipboard.writeText(code).then(() => {
+                    const el = e.currentTarget;
+                    el.innerText = 'COPIED';
+                });
             });
         });
     }
@@ -281,4 +291,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    var clipboard = {
+        data      : '',
+        intercept : false,
+        hook      : function (evt) {
+            if (clipboard.intercept){
+                evt.preventDefault();
+                evt.clipboardData.setData('text/plain', clipboard.data);
+                clipboard.intercept = false;
+                clipboard.data      = '';
+            }
+        }
+    };
 });
