@@ -18,11 +18,13 @@
     </div>
 
     <div id="add-form" class="add-form hidden">
-        <h3>Add New Account</h3>
-        <button id="qr-btn" class="secondary" style="width: 100%; margin-bottom: 10px;">Upload QR Image</button>
+        <div class="" style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+            <button id="startBtn" style="flex: 1;">Scan</button>
+            <button id="qr-btn" style="flex: 1;" class="secondary" style="width: 100%; margin-bottom: 10px;">Upload Image</button>
+        </div>
         <input type="file" id="qr-input" accept="image/*" style="display: none;">
-        <input type="text" id="issuer-input" placeholder="Account Name (e.g. Google)">
-        <div class="form-actions">
+        <input type="text" id="issuer-input" placeholder="Account Name (e.g. Google)" style="display: none;">
+        <div class="form-actions" style="margin-top: 4px;">
             <button id="save-btn">Save</button>
             <button id="cancel-btn" class="secondary">Cancel</button>
         </div>

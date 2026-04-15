@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const secretInput = document.getElementById('secret-input');
     const qrBtn = document.getElementById('qr-btn');
     const qrInput = document.getElementById('qr-input');
+    const startBtn = document.getElementById("startBtn");
 
     // Load accounts from storage
     loadAccounts();
@@ -211,8 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- CRYPTO LOGIC (TOTP Implementation) ---
-
     async function generateTOTP(secret) {
         try {
             const keyData = base32toBuffer(secret);
@@ -270,4 +269,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return buffer.buffer;
     }
+
+    document.getElementById("startBtn").addEventListener("click", async () => {
+        console.log('clicked')
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        chrome.tabs.sendMessage(tab.id, { type: "START_SNIP" });
+        window.close();
+    });
 });

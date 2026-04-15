@@ -4,9 +4,22 @@
   "version": "1.0",
   "description": "A simple browser extension to generate 2FA codes.",
   "permissions": [
-    "storage"
+    "storage",
+    "tabs",
+    "activeTab"
   ],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "all_frames": true
+    }
+  ]
 }
