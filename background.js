@@ -4,70 +4,77 @@ importScripts("jsQR.js");
 chrome.runtime.onMessage.addListener((msg, sender) => {
     if (msg.type === "SNIP_DONE") {
         chrome.tabs.captureVisibleTab(sender.tab.windowId, { format: "png" }, (dataUrl) => {
-            cropImage(dataUrl, msg.rect, msg.devicePixelRatio);
+            // Pass sender.tab.id so we can send an alert back to the page
+            cropImage(dataUrl, msg.rect, msg.devicePixelRatio, sender.tab.id);
         });
     }
 });
 
-async function cropImage(dataUrl, rect, scale) {
+// Listener for the final save confirmation from the content script
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg.type === "SAVE_CONFIRMED") {
+        saveAccountToStorage(msg.account).then(() => {
+            sendResponse({ status: "saved" });
+        });
+        return true; 
+    }
+});
+
+async function cropImage(dataUrl, rect, scale, tabId) {
     try {
-        // In Service Workers, we use fetch + createImageBitmap instead of new Image()
         const response = await fetch(dataUrl);
         const blob = await response.blob();
         const img = await createImageBitmap(blob);
-
         const canvas = new OffscreenCanvas(rect.w * scale, rect.h * scale);
         const ctx = canvas.getContext("2d");
 
         ctx.drawImage(
             img,
-            rect.x * scale, rect.y * scale, rect.w * scale, rect.h * scale, // Source
-            0, 0, rect.w * scale, rect.h * scale                           // Destination
+            rect.x * scale, rect.y * scale, rect.w * scale, rect.h * scale,
+            0, 0, rect.w * scale, rect.h * scale
         );
 
-        // Extract image data for jsQR
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const code = jsQR(imageData.data, imageData.width, imageData.height);
 
         if (code && code.data) {
-            await processAndSaveQR(code.data);
+            const account = parseQRData(code.data);
+            if (account) {
+                chrome.tabs.sendMessage(tabId, { type: "CONFIRM_SCAN", account });
+            } else {
+                throw new Error("Invalid 2FA format");
+            }
         } else {
-            console.error("QR Code not found in the selected area.");
+            chrome.tabs.sendMessage(tabId, { type: "SHOW_ALERT", message: "QR Code not found." });
         }
     } catch (error) {
-        console.error("Error during image cropping:", error);
+        chrome.tabs.sendMessage(tabId, { type: "SHOW_ALERT", message: "Scan failed: " + error.message });
     }
 }
 
-async function processAndSaveQR(rawValue) {
+function parseQRData(rawValue) {
     try {
         const url = new URL(rawValue);
-        if (url.protocol !== 'otpauth:') {
-            throw new Error('Not a valid 2FA format');
-        }
+        if (url.protocol !== 'otpauth:') return null;
 
         const params = new URLSearchParams(url.search);
         const secret = params.get('secret');
         let issuer = params.get('issuer') || url.pathname.split('/').pop().split(':')[0];
-        issuer = decodeURIComponent(issuer);
+        if (!secret) return null;
 
-        if (secret) {
-            const cleanSecret = secret.replace(/[\s\-=]/g, '').toUpperCase();
-            
-            // Save to chrome storage
-            const result = await chrome.storage.sync.get(['accounts']);
-            const accounts = result.accounts || [];
-            
-            accounts.push({ 
-                issuer, 
-                secret: cleanSecret, 
-                id: Date.now() 
-            });
-
-            await chrome.storage.sync.set({ accounts });
-            console.log("Account saved successfully:", issuer);
-        }
+        return {
+            issuer: decodeURIComponent(issuer),
+            secret: secret.replace(/[\s\-=]/g, '').toUpperCase(),
+            id: Date.now()
+        };
     } catch (e) {
-        console.error("Failed to parse QR Code data:", e);
+        return null;
     }
+}
+
+async function saveAccountToStorage(account) {
+    const result = await chrome.storage.sync.get(['accounts']);
+    const accounts = result.accounts || [];
+    accounts.push(account);
+    await chrome.storage.sync.set({ accounts });
 }
