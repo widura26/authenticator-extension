@@ -1,6 +1,9 @@
 console.log('hello')
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === "START_SNIP") startSnip();
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === "START_SNIP") {
+      startSnip();
+      sendResponse({ status: "started" }); // Acknowledge the message
+  }
 });
 
 function startSnip() {
@@ -31,6 +34,7 @@ function startSnip() {
         dragging = true;
         startX = e.clientX;
         startY = e.clientY;
+        console.log("mouse down")
     });
 
     overlay.addEventListener("mousemove", e => {
@@ -44,6 +48,8 @@ function startSnip() {
         box.style.top = y + "px";
         box.style.width = w + "px";
         box.style.height = h + "px";
+        console.log("mouse move")
+
     });
 
     overlay.addEventListener("mouseup", e => {
@@ -52,14 +58,16 @@ function startSnip() {
         overlay.remove();
 
         chrome.runtime.sendMessage({
-        type: "SNIP_DONE",
-        rect: {
-            x: Math.round(rect.x),
-            y: Math.round(rect.y),
-            w: Math.round(rect.width),
-            h: Math.round(rect.height)
-        }
+            type: "SNIP_DONE",
+            rect: {
+                x: Math.round(rect.x),
+                y: Math.round(rect.y),
+                w: Math.round(rect.width),
+                h: Math.round(rect.height)
+            },
+            devicePixelRatio: window.devicePixelRatio
         });
+        console.log("mouse up")
     });
 
     window.addEventListener("keydown", e => {

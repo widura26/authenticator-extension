@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="header">
-        <h2>Authenticator</h2>
+        <h2>SnapUpCode.qr</h2>
         <button id="add-btn" class="icon-btn">+</button>
     </div>
 
@@ -19,12 +19,12 @@
 
     <div id="add-form" class="add-form hidden">
         <div class="" style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
-            <button id="startBtn" style="flex: 1;">Scan</button>
-            <button id="qr-btn" style="flex: 1;" class="secondary" style="width: 100%; margin-bottom: 10px;">Upload Image</button>
+            <button id="startBtn" style="flex: 1;">Snap</button>
+            <button id="qr-btn" style="flex: 1;" class="secondary" style="width: 100%; margin-bottom: 10px;">Upload</button>
         </div>
         <input type="file" id="qr-input" accept="image/*" style="display: none;">
         <input type="text" id="issuer-input" placeholder="Account Name (e.g. Google)" style="display: none;">
-        <div class="form-actions" style="margin-top: 4px;">
+        <div class="form-actions" style="margin-top: 4px; display: none;">
             <button id="save-btn">Save</button>
             <button id="cancel-btn" class="secondary">Cancel</button>
         </div>

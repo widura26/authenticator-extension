@@ -1,9 +1,3 @@
-// // ES6 import
-// import jsQR from "jsqr";
-
-// // CommonJS require
-// const jsQR = require("jsqr");
-
 document.addEventListener('DOMContentLoaded', () => {
     const codesList = document.getElementById('codes-list');
     const addForm = document.getElementById('add-form');
@@ -181,7 +175,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="account-name">${account.issuer}</span>
                     <div class="code-display">${code}</div>
                 </div>
-                <div class="delete-btn" data-id="${account.id}">🗑️</div>
+                <div class="delete-btn" data-id="${account.id}">
+                    <svg viewBox="0 0 24 24" width="18" height="18" style="pointer-events: none;">
+                        <path fill="#ccc" d="M6,19c0,1.1,0.9,2,2,2h8c1.1,0,2-0.9,2-2V7H6V19z M19,4h-3.5l-1-1h-5l-1,1H5v2h14V4z"/>
+                    </svg>
+                </div>
             `;
             codesList.appendChild(item);
         }
@@ -189,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add delete listeners
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const id = parseInt(e.target.getAttribute('data-id'));
+                const id = parseInt(e.currentTarget.getAttribute('data-id'));
                 deleteAccount(id);
             });
         });
@@ -273,7 +271,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById("startBtn").addEventListener("click", async () => {
         console.log('clicked')
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        chrome.tabs.sendMessage(tab.id, { type: "START_SNIP" });
-        window.close();
+
+        chrome.tabs.sendMessage(tab.id, { type: "START_SNIP" }, (response) => {
+            if (chrome.runtime.lastError) {
+                alert("Cannot scan this page. Please refresh the page and try again. (Note: Scanning does not work on chrome:// or system pages)");
+                console.error("Connection error:", chrome.runtime.lastError.message);
+            } else {
+                window.close();
+            }
+        });
     });
 });
