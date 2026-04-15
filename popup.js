@@ -170,10 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const item = document.createElement('div');
             item.className = 'code-item';
+            item.id = `card-${account.id}`;
             item.innerHTML = `
                 <div>
                     <span class="account-name">${account.issuer}</span>
-                    <div class="code-display" id="code-display-${account.id}">${code}</div>
+                    <div class="code-display" id="code-display-${account.id}" data-code="${code}">${code}</div>
                 </div>
                 <div class="delete-btn" data-id="${account.id}">
                     <svg viewBox="0 0 24 24" width="18" height="18" style="pointer-events: none;">
@@ -194,10 +195,18 @@ document.addEventListener('DOMContentLoaded', () => {
       
         document.querySelectorAll('.code-display').forEach(display => {
             display.addEventListener('click', (e) => {
-                const code = e.currentTarget.innerText;
+                // Capture the element reference synchronously
+                const el = e.currentTarget;
+                const code = el.getAttribute('data-code');
+
+                if (el.innerText === 'COPIED') return;
+                
                 navigator.clipboard.writeText(code).then(() => {
-                    const el = e.currentTarget;
                     el.innerText = 'COPIED';
+                    // Revert back to code after 2 seconds
+                    setTimeout(() => {
+                        if (el.innerText === 'COPIED') el.innerText = el.getAttribute('data-code');
+                    }, 2000);
                 });
             });
         });
@@ -213,11 +222,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function refreshCodes() {
-        // Only re-render if the list is visible
-        if (!codesList.classList.contains('hidden')) {
-            loadAccounts();
-        }
+    async function refreshCodes() {
+        if (codesList.classList.contains('hidden')) return;
+
+        chrome.storage.sync.get(['accounts'], async (result) => {
+            const accounts = result.accounts || [];
+            
+            // If count changed (add/delete), do a full re-render
+            const existingCards = codesList.querySelectorAll('.code-item');
+            if (existingCards.length !== accounts.length) {
+                renderAccounts(accounts);
+                return;
+            }
+
+            // Surgical update: update only the values to keep animations smooth
+            for (const account of accounts) {
+                const code = await generateTOTP(account.secret);
+
+                const codeEl = document.getElementById(`code-display-${account.id}`);
+
+                if (codeEl) {
+                    codeEl.setAttribute('data-code', code);
+                }
+
+                if (codeEl && codeEl.innerText !== 'COPIED') {
+                    codeEl.innerText = code;
+                }
+            }
+        });
     }
 
     async function generateTOTP(secret) {
